@@ -5,6 +5,7 @@ import com.google.common.io.ByteStreams;
 import com.qunar.qfproxy.constants.StorageConfig;
 import com.qunar.qfproxy.model.EmoPackConf;
 import com.qunar.qfproxy.service.DownloadService;
+import com.qunar.qfproxy.service.EmoDownloadService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,10 @@ public class EmoDownloadController {
 
     @Autowired
     private DownloadService downloadService;
+
+
+    @Autowired
+    private EmoDownloadService emoDownloadService;
 
     @RequestMapping("/d/z/{packageName:.*}")
     @ResponseBody
@@ -75,6 +80,27 @@ public class EmoDownloadController {
             }
         }
         return emoPackConf.getData();
+    }
+
+
+    @RequestMapping("/d/e/{packageKey}/{shortcut}/{typeName}")
+    @ResponseBody
+    public void downloadEmotion(@PathVariable(value = "packageKey") String packageKey,
+                                @PathVariable(value = "shortcut") String shortcut,
+                                @PathVariable(value = "typeName") String typeName,
+                                HttpServletRequest request,
+                                HttpServletResponse response)  {
+        LOGGER.info("/d/e downlaod emo param is packageKey = {};shortcut={};typeName={}",packageKey,shortcut,typeName);
+        String key = packageKey+"/"+shortcut;
+        String emoName = "";
+        try {
+            //key = StorageConfig.SWIFT_FOLDER_EMO_PACKAGE+key;
+            emoDownloadService.downloadEmo(packageKey,key,typeName,request,response);
+
+        }catch (Exception e){
+            LOGGER.error("download emo fail",e);
+        }
+
     }
 
     private EmoPackConf genEmoConfig() throws IOException {

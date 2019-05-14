@@ -59,7 +59,7 @@ public class UploadV2Servlet extends HttpServlet {
             return;
         }
         JsonResult<?> jr = doUploadV2(key, type, name, fdFi.getFileName(), fdFi.getContentType(), fdFi, req, resp);
-
+        //resp.addHeader("Access-Control-Allow-Origin","*");
         QFProxyRuntimeLogger.log(req, null, null, null);
         if (jr == null || !jr.isRet()) {
             LOGGER.error("上传过程中出错,key:[{}],name:[{}]", key, name);

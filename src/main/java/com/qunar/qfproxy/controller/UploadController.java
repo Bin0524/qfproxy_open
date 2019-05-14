@@ -48,6 +48,7 @@ public class UploadController {
         if (StringUtils.isEmpty(name)) {
             name = key;
         }
+        //response.addHeader("Access-Control-Allow-Origin","*");
         File file = new File(StorageConfig.SWIFT_FOLDER + key);
         if (!file.exists()) {
             response.addIntHeader(X_QFPROXY_CODE, FILE_EXIST);

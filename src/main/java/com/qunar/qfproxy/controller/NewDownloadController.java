@@ -30,6 +30,8 @@ public class NewDownloadController {
     public void download(
             @PathVariable(value = "key") String key,
             @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "webp", required = false) boolean webp,
+            @RequestParam(value = "webpsou", required = false) boolean webpsou,
             HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException, IOException {
 
         String fileName = key;
@@ -41,8 +43,15 @@ public class NewDownloadController {
             writer.flush();
             return;
         }
+        if (webp && webpsou && downloadService.checkImg(key)) {
+            StringBuffer keyWeb = new StringBuffer();
+            keyWeb.append(key.substring(0, key.lastIndexOf("."))).append(".webp");
+            LOGGER.info("due to support webp convert key {} to {}", key, keyWeb.toString());
+            fileName = keyWeb.toString();
+
+        }
         fileName = StorageConfig.SWIFT_FOLDER + fileName;
-        downloadService.downloadService(fileName,req,resp);
+        downloadService.downloadService(fileName, req, resp);
 
     }
 }

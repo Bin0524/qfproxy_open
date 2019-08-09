@@ -18,6 +18,9 @@ public class StorageConfig {
     public static final String SWIFT_FOLDER = getProperty("storage_folder");
     public static final String SWIFT_FOLDER_EMO_PACKAGE = getProperty("storage_folder_emo");
 
+
+
+
     @PostConstruct
     private void initStoreFolder() {
         try {

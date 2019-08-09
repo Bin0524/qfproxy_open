@@ -1,5 +1,7 @@
 package com.qunar.qfproxy.service;
 
+import com.google.common.base.Strings;
+import com.qunar.qfproxy.utils.imgtype.ImgTypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -64,4 +66,16 @@ public class DownloadService {
         fileinputstream.close();
     }
 }
+
+    public static boolean checkImg(String key) {
+        if (Strings.isNullOrEmpty(key)) {
+            return false;
+        }
+        for (String suf : ImgTypeUtils.IMG_TYPES.values()) {
+            if (key.endsWith(suf) && !key.endsWith("gif")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

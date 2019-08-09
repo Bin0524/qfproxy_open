@@ -6,6 +6,8 @@ import com.qunar.qfproxy.constants.StorageConfig;
 import com.qunar.qfproxy.model.FileType;
 import com.qunar.qfproxy.model.FormDataFileInputStream;
 import com.qunar.qfproxy.model.JsonResult;
+import com.qunar.qfproxy.model.UploadInfo;
+import com.qunar.qfproxy.service.UploadService;
 import com.qunar.qfproxy.utils.DownloadUtils;
 import com.qunar.qfproxy.utils.HttpUtils;
 import com.qunar.qfproxy.utils.JacksonUtil;
@@ -15,6 +17,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServlet;
@@ -38,7 +42,7 @@ public class UploadV2Servlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doPost(req,resp);
+        doPost(req, resp);
     }
 
     @Override
@@ -73,6 +77,7 @@ public class UploadV2Servlet extends HttpServlet {
     private JsonResult<?> doUploadV2(String key, String type, String name, String fileName,
                                      String contentType, InputStream is, HttpServletRequest request, HttpServletResponse response) {
         FileType fileType = FileType.of(type);
+        LOGGER.info("KEY {} fileType is {}", key, fileType.getType());
         boolean checkRes = checkParamsAndCode(response, key, ILLEGAL_KEY) && checkParamsAndCode(response, fileType, ILLEGAL_TYPE);
         if (!checkRes) {
             LOGGER.error("文件上传失败，key:{},name:{},type:{},原因:参数不正确", key, name, type);
@@ -81,6 +86,7 @@ public class UploadV2Servlet extends HttpServlet {
         if (StringUtils.isEmpty(name)) {
             name = fileName;
         }
+        UploadService uploadService = (UploadService) getBean("uploadService");
         try {
             InputStreamWrapper fileIS = InputStreamWrapper.createBufferWrapper(is);
             //获取到图片的真实类型
@@ -88,11 +94,9 @@ public class UploadV2Servlet extends HttpServlet {
             String keyWithType = DownloadUtils.handleKeyForImg(key, imgRealType);
             //如果是图片，那么name换成key.realType
             name = DownloadUtils.handleImgName(name, imgRealType, key);
-            String newFileName = StorageConfig.SWIFT_FOLDER + keyWithType;
-            File saveFile = new File(newFileName);
-            FileUtils.copyInputStreamToFile(fileIS, saveFile);
-            String downUri = DownloadUtils.getDownloadUri("v2", keyWithType, name);
-            LOGGER.info("return the download url {}",downUri);
+            UploadInfo uploadInfo = uploadService.upload(fileType,key,fileIS,imgRealType);
+            String downUri = DownloadUtils.getDownloadUriV2("v2", keyWithType, name,uploadInfo);
+            LOGGER.info("return the download url {}", downUri);
             return JsonResult.newSuccJsonResult(downUri);
         } catch (Exception e) {
             catchExceptionAndSet(request, response, e);
@@ -106,6 +110,13 @@ public class UploadV2Servlet extends HttpServlet {
             return null;
         }
         return HttpUtils.getFirstParam(params, name);
+    }
+
+    private Object getBean(String beanName) {
+        ApplicationContext context =
+                WebApplicationContextUtils.getRequiredWebApplicationContext(
+                        this.getServletContext());
+        return context.getBean(beanName);
     }
 
 

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.qunar.qfproxy.constants.Config;
 import com.qunar.qfproxy.constants.HttpConstants;
 import com.qunar.qfproxy.model.FileType;
+import com.qunar.qfproxy.model.UploadInfo;
 import com.qunar.qfproxy.utils.imgtype.ImgTypeUtils;
 import com.qunar.qfproxy.utils.imgtype.InputStreamWrapper;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,19 @@ public class DownloadUtils {
         }
         return String.format(StringUtils.join(sufficnt, HttpConstants.DOWNLOAD_PATH_FORMAT, "?name=%s"),
                 ver, HttpUtils.urlEncode(key), StringUtils.isEmpty(name) ? "" : HttpUtils.urlEncode(name));
+    }
+
+    public static String getDownloadUriV2(String ver, String key, String name, UploadInfo uploadInfo) {
+        String sufficnt = Config.PROJECT_HOST_AND_PORT;
+        if (Strings.isNullOrEmpty(sufficnt)) {
+            sufficnt = "";
+        }
+        boolean webpSour = false;
+        if(uploadInfo!=null && uploadInfo.isWebpSour()){
+            webpSour = true;
+        }
+        return String.format(StringUtils.join(sufficnt, HttpConstants.DOWNLOAD_PATH_FORMAT, "?name=%s","&webpsou=%s"),
+                ver, HttpUtils.urlEncode(key), StringUtils.isEmpty(name) ? "" : HttpUtils.urlEncode(name),webpSour ? HttpUtils.urlEncode("true"):HttpUtils.urlEncode("false"));
     }
 
     /**

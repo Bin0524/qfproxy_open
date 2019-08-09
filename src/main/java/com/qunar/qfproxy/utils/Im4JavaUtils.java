@@ -54,30 +54,6 @@ public class Im4JavaUtils {
     }
 
     /**
-     * 旋转图片
-     *
-     * @param srcImagePath 原图片地址
-     * @param newImagePath 新图片地址
-     * @param degree       旋转角度
-     * @return
-     */
-    public static boolean roateImage(String srcImagePath, String newImagePath, Double degree) {
-        try {
-            IMOperation op = new IMOperation();
-            op.addImage(srcImagePath);
-            op.rotate(degree);
-            op.addImage(newImagePath);
-            ImageCommand convert = getImageCommand(CommandType.convert);
-            convert.run(op);
-            System.out.println("旋转图片成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * 裁剪图片
      *
      * @param srcImagePath 原图片地址
@@ -96,9 +72,9 @@ public class Im4JavaUtils {
             op.addImage(newImagePath);
             ImageCommand convert = getImageCommand(CommandType.convert);
             convert.run(op);
-            LOGGER.info("裁剪图片成功");
+            LOGGER.info("cut img success");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("cut img fail due to",e);
             return false;
         }
         return true;
@@ -122,9 +98,9 @@ public class Im4JavaUtils {
             op.addImage(newImagePath);
             ImageCommand convert = getImageCommand(CommandType.convert);
             convert.run(op);
-            LOGGER.info("缩放图片成功");
+            LOGGER.info("zoom img success ");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("zoom img fail due to",e);
             return false;
         }
         return true;
@@ -147,74 +123,14 @@ public class Im4JavaUtils {
             op.addImage(newImagePath);
             ImageCommand convert = getImageCommand(CommandType.convert);
             convert.run(op);
-            LOGGER.info("压缩图片成功");
+            LOGGER.info("compress img success");
         } catch (Exception e) {
-            e.printStackTrace();
+           LOGGER.error("compress img fail due to ",e);
             return false;
         }
         return true;
     }
 
-    /**
-     * 文字水印
-     *
-     * @param srcImagePath 原图片地址
-     * @param newImagePath 新图片地址
-     * @param content      水印文字，不支持汉字
-     * @return
-     */
-    public static boolean textImage(String srcImagePath, String newImagePath, String content) {
-        try {
-            IMOperation op = new IMOperation();
-            op.addImage(srcImagePath);
-            //右下角
-            op.font("ArialBold").gravity("southeast").pointsize(60).fill("#F2F2F2").draw("text 10,10 " + content);
-            op.addImage(newImagePath);
-            ImageCommand convert = getImageCommand(CommandType.convert);
-            convert.run(op);
-            LOGGER.info("添加文字水印成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * 图片水印
-     *
-     * @param srcImagePath    原图片地址
-     * @param newImagePath    新图片地址
-     * @param appendImagePath 水印图片地址
-     * @param dissolve        水印透明度，0-100
-     * @return
-     */
-    public static boolean compositeImage(String srcImagePath, String newImagePath, String appendImagePath, Integer dissolve) {
-        try {
-            //原图片信息
-            BufferedImage bufferedImage = ImageIO.read(new File(srcImagePath));
-            int w = bufferedImage.getWidth();
-            int h = bufferedImage.getHeight();
-            //水印图片信息
-            Image image = ImageIO.read(new File(appendImagePath));
-            int w1 = image.getWidth(null);
-            int h1 = image.getHeight(null);
-
-            IMOperation op = new IMOperation();
-            op.geometry(w1, h1, w - w1 - 10, h - h1 - 10);
-            op.dissolve(dissolve);
-            op.addImage(appendImagePath);
-            op.addImage(srcImagePath);
-            op.addImage(newImagePath);
-            ImageCommand composite = getImageCommand(CommandType.composite);
-            composite.run(op);
-            LOGGER.info("添加图片水印成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
 
     /**
      * 获取图片信息
@@ -222,8 +138,8 @@ public class Im4JavaUtils {
      * @param imagePath 图片地址
      * @return
      */
-    public static Map<String, String> getImageInfo(String imagePath) {
-        Map<String, String> imageInfo = new HashMap<>();
+    public static Map<String, Integer> getImageInfo(String imagePath) {
+        Map<String, Integer> imageInfo = new HashMap<>();
         try {
             IMOperation op = new IMOperation();
             op.format("%w,%h");
@@ -235,8 +151,8 @@ public class Im4JavaUtils {
             ArrayList<String> cmdOutput = output.getOutput();
             String[] result = cmdOutput.get(0).split(",");
             if (result.length == 2) {
-                imageInfo.put("w", result[0]);
-                imageInfo.put("h", result[1]);
+                imageInfo.put("w", Integer.valueOf((int)Double.parseDouble(result[0])));
+                imageInfo.put("h", Integer.valueOf((int)Double.parseDouble(result[1])));
             }
         } catch (Exception e) {
             e.printStackTrace();

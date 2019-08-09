@@ -18,8 +18,7 @@ import java.util.concurrent.TimeoutException;
 
 @Service("uploadService")
 public class UploadService implements IUploadService {
-    //StorageConfig.SWIFT_FOLDER
-    private static final String WEBP_SUFFIX = "webp";
+     private static final String WEBP_SUFFIX = "webp";
     private static final String PNG_SUFFIX = "png";
     @Override
     public UploadInfo isFileExist(FileType fileType, String key) throws InterruptedException, TimeoutException {

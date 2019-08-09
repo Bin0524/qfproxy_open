@@ -6,12 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-
 public class Config {
     private static Properties props;
     public static final String PROJECT_HOST_AND_PORT = getProperty("project.host.and.port");
     public static final String TRAN_WEBP_SWITCH = getProperty("trans.webp.switch");
-    public static final String WEBP_Q = getProperty("webp_q");
+    public static final String WEBP_Q = getProperty("webp.q");
+    public static final Integer PC_THUMB_SIZE = Integer.valueOf(getProperty("img.thumb.size.touch"));
+    public static final Integer TOUCH_THUMB_SIZE = Integer.valueOf(getProperty("img.thumb.size.touch"));
+    public static final double WIDTH_HEIGHT_RATE = Double.parseDouble((getProperty("img.width.heigh.rate")));
+
+
     public static final String THUMB_KEY_FORMAT = "%s_thumb_%d*%d.%s"; //缩略图的key格式 32813767261735215612546251_thumb_128*128.png
     public static final String FUZZY_KEY_FORMAT = "%s_fuzzy.%s"; //模糊图的key格式 32813767261735215612546251_fuzzy.png
 

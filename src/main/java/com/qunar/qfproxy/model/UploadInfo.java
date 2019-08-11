@@ -41,6 +41,7 @@ public class UploadInfo {
         this.webpSour = webpSour;
     }
 
+
     public boolean isWebpSour() {
         return webpSour;
     }

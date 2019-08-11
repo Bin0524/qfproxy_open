@@ -30,6 +30,8 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.qunar.qfproxy.constants.CodeConstants.ILLEGAL_KEY;
 import static com.qunar.qfproxy.constants.CodeConstants.ILLEGAL_TYPE;
@@ -39,6 +41,7 @@ import static com.qunar.qfproxy.utils.ErrorCodeUtil.checkParamsAndCode;
 
 public class UploadV2Servlet extends HttpServlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(UploadV2Servlet.class);
+    private ExecutorService uploadPool = Executors.newFixedThreadPool(200);
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -94,8 +97,15 @@ public class UploadV2Servlet extends HttpServlet {
             String keyWithType = DownloadUtils.handleKeyForImg(key, imgRealType);
             //如果是图片，那么name换成key.realType
             name = DownloadUtils.handleImgName(name, imgRealType, key);
-            UploadInfo uploadInfo = uploadService.upload(fileType,key,fileIS,imgRealType);
-            String downUri = DownloadUtils.getDownloadUriV2("v2", keyWithType, name,uploadInfo);
+            UploadInfo uploadInfo = uploadService.upload(fileType, key, fileIS, imgRealType);
+            String downUri = DownloadUtils.getDownloadUriV2("v2", keyWithType, name, uploadInfo);
+            if (fileType.equals(FileType.IMG.getType())) {
+                if (uploadInfo.isWebpSour()) {
+                    uploadService.buildThumbAndFuzzy(key, "webp"); //如果webP 存在就构建webp的缩率以及模糊图
+                } else {
+                    uploadService.buildThumbAndFuzzy(key, imgRealType);
+                }
+            }
             LOGGER.info("return the download url {}", downUri);
             return JsonResult.newSuccJsonResult(downUri);
         } catch (Exception e) {

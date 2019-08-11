@@ -69,6 +69,7 @@ public class UploadService implements IUploadService {
             StringBuffer pngPath = new StringBuffer(newFileName).append(".").append(PNG_SUFFIX);
             webpUtils.decodeWebpByCmd(originPath.toString(), pngPath.toString(), key);
             uploadInfo.setWebpSour(true);
+            return uploadInfo;
         }
         return null;
     }

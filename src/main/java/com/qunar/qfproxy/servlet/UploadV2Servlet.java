@@ -121,7 +121,6 @@ public class UploadV2Servlet extends HttpServlet {
         }
         return HttpUtils.getFirstParam(params, name);
     }
-
     private Object getBean(String beanName) {
         ApplicationContext context =
                 WebApplicationContextUtils.getRequiredWebApplicationContext(

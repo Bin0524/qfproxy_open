@@ -19,15 +19,21 @@ import java.io.InputStream;
 import java.security.Key;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 @Service("uploadService")
 public class UploadService implements IUploadService {
     private static final String WEBP_SUFFIX = "webp";
     private static final String PNG_SUFFIX = "png";
     private ExecutorService uploadPool = Executors.newFixedThreadPool(200);
+    public static ConcurrentHashMap<String, Integer> UPLOADING_KEY = new ConcurrentHashMap();
+
+    private static  HashSet<Integer> THUMB_SIZE = new HashSet<>(2);
+     static {
+         THUMB_SIZE.add(Config.PC_THUMB_SIZE);
+         THUMB_SIZE.add(Config.TOUCH_THUMB_SIZE);
+
+     }
 
     @Resource
     private BuildImgService buildImgService;
@@ -53,6 +59,7 @@ public class UploadService implements IUploadService {
         webpPath.append(".").append(WEBP_SUFFIX);
         FileUtils.copyInputStreamToFile(fileIs, new File(originPath.toString()));
         uploadInfo.setSucc(true);
+        System.out.println(Config.PC_THUMB_SIZE);
         if (!Strings.isNullOrEmpty(realType) && !realType.equalsIgnoreCase(WEBP_SUFFIX)
                 && SwitchStatus.ON.getStatus().equalsIgnoreCase(Config.TRAN_WEBP_SWITCH)) {
             uploadInfo.setWebpSour(webpUtils.encodeWebpByCmd(originPath.toString(), webpPath.toString(), key));
@@ -77,24 +84,40 @@ public class UploadService implements IUploadService {
         }
         String inputPath = new StringBuffer(StorageConfig.SWIFT_FOLDER).append(key)
                 .append(".").append(realKey).toString();
-        if (Config.THUMB_SIZE != null && Config.CUT_SWITCH.equalsIgnoreCase(SwitchStatus.ON.getStatus())) {
+        if (THUMB_SIZE != null && Config.CUT_SWITCH.equalsIgnoreCase(SwitchStatus.ON.getStatus())) {
+            UPLOADING_KEY.putIfAbsent(key, 1);
+            for (Integer x:THUMB_SIZE) {
+                    String thumbKey = String.format(Config.THUMB_KEY_FORMAT, key,x, x, realKey);
+                    StringBuffer outPath = new StringBuffer(StorageConfig.SWIFT_FOLDER).append(thumbKey);
+                    buildImgService.buildThumb(inputPath, outPath.toString(), x, x);
+
+            }
+            UPLOADING_KEY.put(key, 2);
+            String fuzzyKey = String.format(Config.FUZZY_KEY_FORMAT, key, realKey);
+            StringBuffer fuzzyPath = new StringBuffer(StorageConfig.SWIFT_FOLDER).append(fuzzyKey);
+            buildImgService.buildFuzzy(inputPath, fuzzyPath.toString(), Config.COMPRESS_QUALITY);
+            UPLOADING_KEY.remove(key);
             uploadPool.execute(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Config.THUMB_SIZE.stream().forEach(x -> {
-                        String thumbKey = String.format(Config.THUMB_KEY_FORMAT, x, x, realKey);
+                    UPLOADING_KEY.putIfAbsent(key, 1);
+                    THUMB_SIZE.stream().forEach(x -> {
+                        String thumbKey = String.format(Config.THUMB_KEY_FORMAT,key,x, x, realKey);
                         StringBuffer outPath = new StringBuffer(StorageConfig.SWIFT_FOLDER).append(thumbKey);
-                        buildImgService.buildThumb(inputPath, outPath.toString(), x, x);
+                        buildImgService.buildThumb(inputPath, outPath.toString(),x, x);
                     });
-                    String fuzzyKey = String.format(Config.FUZZY_KEY_FORMAT, key, realKey);
+                    UPLOADING_KEY.put(key, 2);
+                    String fuzzyKey = String.format(Config.FUZZY_KEY_FORMAT,key, realKey);
                     StringBuffer fuzzyPath = new StringBuffer(StorageConfig.SWIFT_FOLDER).append(fuzzyKey);
                     buildImgService.buildFuzzy(inputPath, fuzzyPath.toString(), Config.COMPRESS_QUALITY);
+                    UPLOADING_KEY.remove(key);
                 }
             }));
-
-
         }
+    }
 
-
+    public static void main(String[] args) {
+        String thumbKey = String.format(Config.THUMB_KEY_FORMAT, "sadsa",12, 12, "sa");
+       System.out.println(thumbKey);
     }
 }

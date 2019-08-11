@@ -1,6 +1,9 @@
 package com.qunar.qfproxy.controller;
 
+import com.qunar.qfproxy.constants.Config;
 import com.qunar.qfproxy.constants.StorageConfig;
+import com.qunar.qfproxy.model.ImgType;
+import com.qunar.qfproxy.model.PlatFormType;
 import com.qunar.qfproxy.service.DownloadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,8 @@ public class NewDownloadController {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "webp", required = false) boolean webp,
             @RequestParam(value = "webpsou", required = false) boolean webpsou,
+            @RequestParam(value = "platform", required = false) String plat,
+            @RequestParam(value = "imgtype", required = false) String imgType,
             HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException, IOException {
 
         String fileName = key;
@@ -43,15 +48,59 @@ public class NewDownloadController {
             writer.flush();
             return;
         }
-        if (webp && webpsou && downloadService.checkImg(key)) {
+        if(!downloadService.checkImg(key)){
+            downloadService.downloadService(StorageConfig.SWIFT_FOLDER+fileName, req, resp);
+            return;
+        }
+        if (webp && webpsou) {
             StringBuffer keyWeb = new StringBuffer();
             keyWeb.append(key.substring(0, key.lastIndexOf("."))).append(".webp");
             LOGGER.info("due to support webp convert key {} to {}", key, keyWeb.toString());
             fileName = keyWeb.toString();
-
         }
-        fileName = StorageConfig.SWIFT_FOLDER + fileName;
-        downloadService.downloadService(fileName, req, resp);
-
+        PlatFormType platFormType = PlatFormType.of(plat);
+        ImgType imgType1 = ImgType.of(imgType);
+        if (platFormType == null || imgType1 == null) {
+            fileName = StorageConfig.SWIFT_FOLDER + fileName;
+            downloadService.downloadService(fileName, req, resp);
+        }
+        Integer imgSize = null;
+        String downloadKey;
+        String originKey = key.substring(0, key.lastIndexOf("."));
+        String originType = key.substring(key.lastIndexOf(".")+1,key.length());
+        switch (platFormType) {
+            case PC:
+                imgSize = Config.PC_THUMB_SIZE;
+                break;
+            case TOUCH:
+                imgSize = Config.TOUCH_THUMB_SIZE;
+                break;
+        }
+        switch (imgType1) {
+            case ORIGIN:
+                downloadService.downloadService(fileName, req, resp);
+                break;
+            case THUMB:
+                String thumbKey = String.format(Config.THUMB_KEY_FORMAT,originKey,imgSize,imgSize,originType);
+                File file = new File(StorageConfig.SWIFT_FOLDER + thumbKey );
+                if(file.exists() && file.isFile()) {
+                    downloadService.downloadService(StorageConfig.SWIFT_FOLDER + thumbKey, req, resp);
+                }else {
+                    downloadService.downloadService(StorageConfig.SWIFT_FOLDER +fileName, req, resp);
+                }
+                break;
+            case FUZZY:
+                String fuzzyKey = String.format(Config.FUZZY_KEY_FORMAT,originKey,originType);
+                File fileFuzzt = new File(StorageConfig.SWIFT_FOLDER + fuzzyKey );
+                if(fileFuzzt.exists() && fileFuzzt.isFile()) {
+                    downloadService.downloadService(StorageConfig.SWIFT_FOLDER + fuzzyKey, req, resp);
+                }else {
+                    downloadService.downloadService(StorageConfig.SWIFT_FOLDER +fileName, req, resp);
+                }
+                break;
+            case avatar:
+                downloadService.downloadService(fileName, req, resp);
+                break;
+        }
     }
 }

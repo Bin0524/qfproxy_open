@@ -15,21 +15,21 @@ public class Config {
     public static final Integer PC_THUMB_SIZE = Integer.valueOf(getProperty("img.thumb.size.touch"));
     public static final Integer TOUCH_THUMB_SIZE = Integer.valueOf(getProperty("img.thumb.size.touch"));
     public static final double WIDTH_HEIGHT_RATE = Double.parseDouble((getProperty("img.width.heigh.rate")));
-    public static final String CUT_SWITCH = getProperty("cut.switch");
-    public static final HashSet<Integer> THUMB_SIZE = new HashSet<>(2);
-    public static final Double COMPRESS_QUALITY = Double.parseDouble(getProperty("compress.quilty"));
+    //public static  HashSet<Integer> THUMB_SIZE = new HashSet<>(2);
+    public static final Double COMPRESS_QUALITY = Double.parseDouble(getProperty("compress.quality"));
     public static final String THUMB_KEY_FORMAT = "%s_thumb_%d*%d.%s"; //缩略图的key格式 32813767261735215612546251_thumb_128*128.png
     public static final String FUZZY_KEY_FORMAT = "%s_fuzzy.%s"; //模糊图的key格式 32813767261735215612546251_fuzzy.png
+    public static final String CUT_SWITCH = getProperty("cut.switch");
 
 
-    static {
-        if(PC_THUMB_SIZE!=null){
-            THUMB_SIZE.add(PC_THUMB_SIZE);
-        }
-        if(PC_THUMB_SIZE!=null){
-            THUMB_SIZE.add(TOUCH_THUMB_SIZE);
-        }
-    }
+//    static {
+//        if(PC_THUMB_SIZE!=null){
+//            THUMB_SIZE.add(200);
+//        }
+//        if(PC_THUMB_SIZE!=null){
+//            THUMB_SIZE.add(200);
+//        }
+//    }
 
     private synchronized static void init() {
         if (props != null) {

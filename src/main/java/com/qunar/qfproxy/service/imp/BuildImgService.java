@@ -35,7 +35,7 @@ public class BuildImgService implements IBuildImg {
                 LOGGER.error("build thumb fail due to get img origin size fail key is{}", inputPath);
                 return;
             }
-            if (width <= originWidth && height <= originHeight) {
+            if (  originWidth<=width && originHeight<=height) {
                 LOGGER.info("size  smaller than the limit does not require cutting");
                 return;
             }

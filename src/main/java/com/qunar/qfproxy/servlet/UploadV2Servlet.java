@@ -99,7 +99,7 @@ public class UploadV2Servlet extends HttpServlet {
             name = DownloadUtils.handleImgName(name, imgRealType, key);
             UploadInfo uploadInfo = uploadService.upload(fileType, key, fileIS, imgRealType);
             String downUri = DownloadUtils.getDownloadUriV2("v2", keyWithType, name, uploadInfo);
-            if (fileType.equals(FileType.IMG.getType())) {
+            if (fileType.equals(FileType.IMG)) {
                 if (uploadInfo.isWebpSour()) {
                     uploadService.buildThumbAndFuzzy(key, "webp"); //如果webP 存在就构建webp的缩率以及模糊图
                 } else {
